@@ -36,11 +36,21 @@ install_php() {
 	tar -C /opt -xf phpstorm.tar.gz
 
 	if [ ! -f /usr/local/bin/symfony ]; then
-		sudo curl -LsS https://symfony.com/installer -o /usr/local/bin/symfony
+		curl -LsS https://symfony.com/installer -o /usr/local/bin/symfony
 		chmod +x /usr/local/bin/symfony
 	fi
 
 	apt-get install -y php php-sqlite3 php-pgsql php-xml
+}
+
+# Virtualization environment
+install_virtualization() {
+	apt-get install -y virtualbox vagrant
+}
+
+# Containers
+install_containers() {
+	apt-get install -y docker.io
 }
 
 # Start all the stuff
@@ -48,3 +58,5 @@ install_common
 install_python
 install_database
 install_php
+install_virtualization
+install_containers
