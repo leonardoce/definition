@@ -19,7 +19,7 @@ install_python() {
 		curl -Lo pycharm.tar.gz https://download.jetbrains.com/python/pycharm-community-2017.1.2.tar.gz
 	fi
 
-	apt-get install -y virtualenv python3-virtualenv python3-dev python-dev
+	apt-get install -y virtualenv python3-virtualenv python3-dev python-dev libssl-dev
 	tar -C /opt -xf pycharm.tar.gz
 }
 
