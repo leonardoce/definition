@@ -30,6 +30,16 @@ install_database() {
 
 # Install a PHP development environment
 install_php() {
+	if [ ! -f phpstorm.tar.gz ]; then
+		curl -Lo phpstorm.tar.gz "https://data.services.jetbrains.com/products/download?code=PS&platform=linux"
+	fi
+	tar -C /opt -xf phpstorm.tar.gz
+
+	if [ ! -f /usr/local/bin/symfony ]; then
+		sudo curl -LsS https://symfony.com/installer -o /usr/local/bin/symfony
+		chmod +x /usr/local/bin/symfony
+	fi
+
 	apt-get install -y php php-sqlite3 php-pgsql php-xml
 }
 
