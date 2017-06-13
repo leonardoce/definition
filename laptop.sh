@@ -19,8 +19,13 @@ install_python() {
 		curl -Lo pycharm.tar.gz https://download.jetbrains.com/python/pycharm-community-2017.1.2.tar.gz
 	fi
 
+	if [ ! -f pycharm_pro.tar.gz ]; then
+		curl -Lo pycharm_pro.tar.gz https://download.jetbrains.com/python/pycharm-professional-2017.1.3.tar.gz
+	fi
+
 	apt-get install -y virtualenv python3-virtualenv python3-dev python-dev libssl-dev
 	tar -C /opt -xf pycharm.tar.gz
+	tar -C /opt -xf pycharm_pro.tar.gz
 }
 
 # Install the database
@@ -52,6 +57,10 @@ install_virtualization() {
 install_containers() {
 	apt-get install -y docker.io
 }
+
+# Update the system
+apt-get update
+apt-get upgrade -y
 
 # Start all the stuff
 install_common
