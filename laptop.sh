@@ -4,7 +4,7 @@
 install_common() {
 	apt-get install -y \
 		vim-nox emacs-nox build-essential git \
-		chromium-browser tmux
+		chromium-browser tmux keepassx
 
 	# Sublime text is so nice
 	if [ ! -f sublime.tar.bz2 ]; then
@@ -30,7 +30,11 @@ install_python() {
 
 # Install the database
 install_database() {
-	apt-get install -y postgresql-9.6 libpq-dev
+	echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+	wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+        apt-get update
+        apt-get upgrade -y
+	apt-get install -y postgresql-9.6 libpq-dev pgadmin3
 }
 
 # Install a PHP development environment
