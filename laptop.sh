@@ -4,7 +4,7 @@
 install_common() {
 	apt-get install -y \
 		vim-nox emacs-nox build-essential git \
-		chromium-browser tmux keepassx
+		chromium-browser tmux keepassx htop
 
 	# Sublime text is so nice
 	if [ ! -f sublime.tar.bz2 ]; then
