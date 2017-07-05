@@ -125,17 +125,11 @@ class dotnet_development {
   file { '/etc/apt/sources.list.d/dotnetdev.list':
     ensure => 'present',
     content => 'deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main'
-  }
-
-  exec { 'apt-update-post-dotnetdev':
+  } -> exec { 'apt-update-post-dotnetdev':
     command => "/usr/bin/apt-get update",
-    subscribe => File['/etc/apt/sources.list.d/dotnetdev.list']
-  }
-  exec { 'key-refresh-post-dotnetdev':
+  } -> exec { 'key-refresh-post-dotnetdev':
     command => '/usr/bin/apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893',
-    subscribe => File['/etc/apt/sources.list.d/dotnetdev.list']
-  }
-  package { 'dotnet-dev-1.0.4':
+  } -> package { 'dotnet-dev-1.0.4':
     ensure => 'present',
     require => [Exec['apt-update-post-dotnetdev'], Exec['key-refresh-post-dotnetdev']]
   }
