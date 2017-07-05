@@ -120,25 +120,46 @@ class pgenv_development (
   }
 }
 
+# Install the .Net core development environment
+class dotnet_development {
+  file { '/etc/apt/sources.list.d/dotnetdev.list':
+    ensure => 'present',
+    content => 'deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main'
+  }
+
+  exec { 'apt-update-post-dotnetdev':
+    command => "/usr/bin/apt-get update",
+    subscribe => File['/etc/apt/sources.list.d/dotnetdev.list']
+  }
+  exec { 'key-refresh-post-dotnetdev':
+    command => '/usr/bin/apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893',
+    subscribe => File['/etc/apt/sources.list.d/dotnetdev.list']
+  }
+  package { 'dotnet-dev-1.0.4':
+    ensure => 'present',
+    require => [Exec['apt-update-post-dotnetdev'], Exec['key-refresh-post-dotnetdev']]
+  }
+}
+
 # Tool composing my development environment
 class leonardo_development ( $username, $home_directory ) {
-  package { "bison": source => "present" }
-  package { "build-essential": ensure => "present" }
+  package { 'bison': source => 'present' }
+  package { 'build-essential': ensure => 'present' }
   package { 'curl': ensure => 'present' }
-  package { "emacs-nox": ensure => "present" }
-  package { "flex": source => "present" }
-  package { "git": ensure => "present" }
+  package { 'emacs-nox': ensure => 'present' }
+  package { 'flex': source => 'present' }
+  package { 'git': ensure => 'present' }
   package { 'libbz2-dev': ensure => 'present' }
   package { 'libncurses5-dev': ensure => 'present' }
-  package { "libreadline-dev": source => "present" }
+  package { 'libreadline-dev': source => 'present' }
   package { 'libsqlite3-dev': ensure => 'present' }
-  package { "libssl-dev": ensure => "present" }
-  package { "libxml2-dev": source => "present" }
+  package { 'libssl-dev': ensure => 'present' }
+  package { 'libxml2-dev': source => 'present' }
   package { 'llvm': ensure => 'present' }
   package { 'make': ensure => 'present' }
-  package { "tcl-dev": ensure => "present" }
+  package { 'tcl-dev': ensure => 'present' }
   package { 'tk-dev': ensure => 'present' }
-  package { "vim": ensure => "present" }
+  package { 'vim': ensure => 'present' }
   package { 'wget': ensure => 'present' }
   package { 'xz-utils': ensure => 'present' }
   package { 'zlib1g-dev': ensure => 'present' }
@@ -158,6 +179,7 @@ class leonardo_development ( $username, $home_directory ) {
     home_directory => $home_directory,
     install_packages => false,
   }
+  class { "dotnet_development": }
 
   # Installing Spacemacs
   exec { "install_spacemacs":
