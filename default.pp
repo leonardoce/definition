@@ -21,7 +21,7 @@ class pyenv_development (
   $username,
   $home_directory,
   $install_packages = true,
-  $python_version = "3.6.1"
+  $python_versions = ["3.6.1", "3.5.3"],
 ) {
   exec { "pyenv_install":
     command => "/usr/bin/git clone http://github.com/pyenv/pyenv .pyenv",
@@ -58,14 +58,17 @@ class pyenv_development (
     #require => FileLine['pyenv_root_environment']
   }
 
-  exec { "pyenv_install_python_${python_version}":
-    command => "${home_directory}/.pyenv/bin/pyenv install ${python_version}",
-    cwd => "${home_directory}",
-    user => "${username}",
-    environment => [ "PYENV_ROOT=${home_directory}/.pyenv" ],
-    timeout => 1800,
-    creates => "${home_directory}/.pyenv/versions/${python_version}",
-    require => Exec['pyenv_install']
+  $python_versions.each |$python_version| {
+    notice("${python_version}")
+    exec { "pyenv_install_python_${python_version}":
+      command => "${home_directory}/.pyenv/bin/pyenv install ${python_version}",
+      cwd => "${home_directory}",
+      user => "${username}",
+      environment => [ "PYENV_ROOT=${home_directory}/.pyenv" ],
+      timeout => 1800,
+      creates => "${home_directory}/.pyenv/versions/${python_version}",
+      require => Exec['pyenv_install']
+    }
   }
 }
 
