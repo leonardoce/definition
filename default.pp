@@ -210,6 +210,19 @@ class { "leonardo_development" :
 
 class { "leonardo_gui" : }
 
+$gitconfig = @(GITCONFIG)
+  [user]
+  email = leonardoce@interfree.it
+  name = Leonardo Cecchi
+| GITCONFIG
+
+file { "/home/leonardo/.gitconfig" :
+  owner => "leonardo",
+  group => "leonardo",
+  content => $gitconfig,
+  ensure => "present",
+}
+
 # Useful packages
 package { "openssh-server": ensure => "present" }
 package { "tmux": ensure => "present" }
