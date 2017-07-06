@@ -21,7 +21,7 @@ class pyenv_development (
   $username,
   $home_directory,
   $install_packages = true,
-  $python_versions = ["3.6.1", "3.5.3"],
+  $python_versions = ["3.6.1", "3.5.3", "3.4.6", "3.3.6", "3.2.6", "2.7.13"],
 ) {
   exec { "pyenv_install":
     command => "/usr/bin/git clone http://github.com/pyenv/pyenv .pyenv",
