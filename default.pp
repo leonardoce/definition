@@ -29,6 +29,12 @@ class pyenv_development (
     user => "${username}",
     creates => "${home_directory}/.pyenv",
     require => Package['git']
+  } -> exec { "pyenv_virtualenv_install":
+    command => "/usr/bin/git clone http://github.com/pyenv/pyenv-virtualenv .pyenv/plugins/pyenv-virtualenv",
+    cwd => "${home_directory}",
+    user => "${username}",
+    creates => "${home_directory}/.pyenv/plugins/pyenv-virtualenv",
+    require => Package['git']
   }
 
   if ($install_packages) {
@@ -50,12 +56,15 @@ class pyenv_development (
   file_line { 'pyenv_root_environment':
     path => "${home_directory}/.bashrc",
     line => 'export PYENV_ROOT="$HOME/.pyenv"',
-  }
-
-  file_line { 'pyenv_in_path':
+  } -> file_line { 'pyenv_in_path':
     path => "${home_directory}/.bashrc",
     line => 'export PATH="$PYENV_ROOT/bin:$PATH"',
-    #require => FileLine['pyenv_root_environment']
+  } -> file_line { 'pyenv_init':
+    path => "${home_directory}/.bashrc",
+    line => 'eval "$(pyenv init -)"',
+  } -> file_line { 'pyenv_virtualenv_init':
+    path => "${home_directory}/.bashrc",
+    line => 'eval "$(pyenv virtualenv-init -)"',
   }
 
   $python_versions.each |$python_version| {
@@ -89,6 +98,7 @@ class pgenv_development (
     command => "/usr/bin/git clone git://git.postgresql.org/git/postgresql.git ${home_directory}/pgsql/master",
     user => "${username}",
     creates => "${home_directory}/pgsql/master",
+    timeout => 3000,
   } -> file_line { 'pgenv_initialize_sh':
     path => "${home_directory}/.bashrc",
     line => "source ${home_directory}/pgsql/pgenv.sh",
@@ -124,10 +134,12 @@ class pgenv_development (
 }
 
 # Install the .Net core development environment
-class dotnet_development {
+class dotnet_development(
+  $distro_name = $::os['distro']['codename']
+) {
   file { '/etc/apt/sources.list.d/dotnetdev.list':
     ensure => 'present',
-    content => 'deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ xenial main'
+    content => "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ ${distro_name} main"
   } -> exec { 'apt-update-post-dotnetdev':
     command => "/usr/bin/apt-get update",
   } -> exec { 'key-refresh-post-dotnetdev':
@@ -226,3 +238,5 @@ file { "/home/leonardo/.gitconfig" :
 # Useful packages
 package { "openssh-server": ensure => "present" }
 package { "tmux": ensure => "present" }
+package { "iotop": ensure => "present" }
+package { "iftop": ensure => "present" }
