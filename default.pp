@@ -201,6 +201,7 @@ class leonardo_development ( $username, $home_directory ) {
 }
 
 # Graphical interface configuration
+# ---------------------------------
 class leonardo_gui {
   package { "i3": ensure => "present" }
   package { "i3status": ensure => "present" }
@@ -212,6 +213,20 @@ class leonardo_gui {
   package { "firefox": ensure => "present" }
 }
 
+# Virtualization
+# --------------
+class leonardo_virtualization {
+  package { "vagrant": ensure => "present" }
+  package { "virtualbox": ensure => "present" }
+}
+
+# Linux containers
+# ----------------
+class leonardo_containers {
+  package { "docker.io": ensure => "present" }
+}
+
+
 # Actual development machine configuration
 # ----------------------------------------
 
@@ -221,6 +236,11 @@ class { "leonardo_development" :
 }
 
 class { "leonardo_gui" : }
+
+if (! $facts['is_virtual']) {
+  class { "leonardo_containers" : }
+  class { "leonardo_virtualization" : }
+}
 
 $gitconfig = @(GITCONFIG)
   [user]
