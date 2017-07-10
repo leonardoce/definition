@@ -6,10 +6,9 @@ class nvm_development ( $username, $home_directory ) {
     creates => "${home_directory}/.nvm",
     user => $username,
     cwd => "${home_directory}",
-    environment => [ "HOME=$home_directory" ]
-  }
-
-  file_line { 'nvm_initialize_sh':
+    environment => [ "HOME=$home_directory" ],
+    require => User[$username],
+  } -> file_line { 'nvm_initialize_sh':
     path => "${home_directory}/.bashrc",
     line => 'export NVM_DIR=$HOME/.nvm && [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"',
   }
@@ -28,13 +27,25 @@ class pyenv_development (
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.pyenv",
-    require => Package['git']
+    require => [Package['git'], User[$username]]
   } -> exec { "pyenv_virtualenv_install":
     command => "/usr/bin/git clone http://github.com/pyenv/pyenv-virtualenv .pyenv/plugins/pyenv-virtualenv",
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.pyenv/plugins/pyenv-virtualenv",
     require => Package['git']
+  } -> file_line { 'pyenv_root_environment':
+    path => "${home_directory}/.bashrc",
+    line => 'export PYENV_ROOT="$HOME/.pyenv"',
+  } -> file_line { 'pyenv_in_path':
+    path => "${home_directory}/.bashrc",
+    line => 'export PATH="$PYENV_ROOT/bin:$PATH"',
+  } -> file_line { 'pyenv_init':
+    path => "${home_directory}/.bashrc",
+    line => 'eval "$(pyenv init -)"',
+  } -> file_line { 'pyenv_virtualenv_init':
+    path => "${home_directory}/.bashrc",
+    line => 'eval "$(pyenv virtualenv-init -)"',
   }
 
   if ($install_packages) {
@@ -53,22 +64,7 @@ class pyenv_development (
     package { 'tk-dev': ensure => 'present' }
   }
 
-  file_line { 'pyenv_root_environment':
-    path => "${home_directory}/.bashrc",
-    line => 'export PYENV_ROOT="$HOME/.pyenv"',
-  } -> file_line { 'pyenv_in_path':
-    path => "${home_directory}/.bashrc",
-    line => 'export PATH="$PYENV_ROOT/bin:$PATH"',
-  } -> file_line { 'pyenv_init':
-    path => "${home_directory}/.bashrc",
-    line => 'eval "$(pyenv init -)"',
-  } -> file_line { 'pyenv_virtualenv_init':
-    path => "${home_directory}/.bashrc",
-    line => 'eval "$(pyenv virtualenv-init -)"',
-  }
-
   $python_versions.each |$python_version| {
-    notice("${python_version}")
     exec { "pyenv_install_python_${python_version}":
       command => "${home_directory}/.pyenv/bin/pyenv install ${python_version}",
       cwd => "${home_directory}",
@@ -93,7 +89,7 @@ class pgenv_development (
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/pgsql",
-    require => Package['git']
+    require => [Package['git'], User[$username]],
   } -> exec { "postgresql_clone":
     command => "/usr/bin/git clone git://git.postgresql.org/git/postgresql.git ${home_directory}/pgsql/master",
     user => "${username}",
@@ -196,7 +192,7 @@ class leonardo_development ( $username, $home_directory ) {
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.emacs.d",
-    require => Package['git']
+    require => [Package['git'], User[$username]],
   }
 }
 
@@ -243,16 +239,39 @@ if (! $facts['is_virtual']) {
 }
 
 $gitconfig = @(GITCONFIG)
-  [user]
-  email = leonardoce@interfree.it
-  name = Leonardo Cecchi
+[user]
+email = leonardoce@interfree.it
+name = Leonardo Cecchi
 | GITCONFIG
 
-file { "/home/leonardo/.gitconfig" :
+$tmuxconfig = @(TMUXCONFIG)
+set -g prefix C-a
+bind-key C-a send-prefix
+| TMUXCONFIG
+
+$vimconfig = @(VIMCONFIG)
+set nocompatible
+syntax on
+set ai
+| VIMCONFIG
+
+user { "leonardo":
+  ensure => "present",
+  managehome => true,
+  shell => "/bin/bash"
+} -> file { "/home/leonardo/.gitconfig" :
   owner => "leonardo",
   group => "leonardo",
   content => $gitconfig,
   ensure => "present",
+} -> file { "/home/leonardo/.tmux.conf" :
+  owner => "leonardo",
+  group => "leonardo",
+  content => $tmuxconfig,
+} -> file { "/home/leonardo/.vimrc" :
+  owner => "leonardo",
+  group => "leonardo",
+  content => $vimconfig,
 }
 
 # Useful packages
