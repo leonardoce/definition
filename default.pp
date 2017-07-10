@@ -163,7 +163,10 @@ class leonardo_development ( $username, $home_directory ) {
   package { 'libxml2-dev': source => 'present' }
   package { 'llvm': ensure => 'present' }
   package { 'make': ensure => 'present' }
+  package { 'sqlite3': ensure => 'present' }
+  package { 'sudo': ensure => 'present' }
   package { 'tcl-dev': ensure => 'present' }
+  package { 'tig': ensure => 'present' }
   package { 'tk-dev': ensure => 'present' }
   package { 'vim': ensure => 'present' }
   package { 'wget': ensure => 'present' }
@@ -263,7 +266,8 @@ set tabstop=4
 user { "leonardo":
   ensure => "present",
   managehome => true,
-  shell => "/bin/bash"
+  shell => "/bin/bash",
+  groups => ["sudo"],
 } -> file { "/home/leonardo/.gitconfig" :
   owner => "leonardo",
   group => "leonardo",
