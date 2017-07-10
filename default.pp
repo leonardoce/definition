@@ -146,6 +146,28 @@ class dotnet_development(
   }
 }
 
+# Rust development environment
+class rust_development (
+  $username,
+  $home_directory
+) {
+  exec { 'download_rustup':
+    creates => '/tmp/rustup_init.sh',
+    command => '/usr/bin/curl -o /tmp/rustup_init.sh https://sh.rustup.rs/',
+  } -> exec { "install_rustup_for_${username}":
+    creates => "${home_directory}/.cargo",
+    command => '/bin/bash /tmp/rustup_init.sh -y',
+    user => $username,
+  } -> file_line { "rustup_in_bashrc_for_${username}":
+    path => "${home_directory}/.bashrc",
+    line => "source ${home_directory}/.cargo/env",
+  } -> exec { "install_rust_toolchain_for_${username}":
+    user => $username,
+    command => "${home_directory}/.cargo/bin/rustup toolchain install stable",
+    creates => "${home_directory}/.rustup/toolchains/stable-x86_64-unknown-linux-gnu",
+  }
+}
+
 # Tool composing my development environment
 class leonardo_development ( $username, $home_directory ) {
   package { 'bison': source => 'present' }
@@ -187,6 +209,10 @@ class leonardo_development ( $username, $home_directory ) {
     username => $username,
     home_directory => $home_directory,
     install_packages => false,
+  }
+  class { "rust_development":
+    username => $username,
+    home_directory => $home_directory,
   }
   class { "dotnet_development": }
 
@@ -287,7 +313,6 @@ user { "leonardo":
 }
 
 # TODO: Install haskell compiler
-# TODO: Install rust compiler
 
 # Useful packages
 package { "openssh-server": ensure => "present" }
