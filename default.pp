@@ -154,6 +154,7 @@ class leonardo_development ( $username, $home_directory ) {
   package { 'emacs-nox': ensure => 'present' }
   package { 'flex': source => 'present' }
   package { 'git': ensure => 'present' }
+  package { 'golang': ensure => 'present' }
   package { 'libbz2-dev': ensure => 'present' }
   package { 'libncurses5-dev': ensure => 'present' }
   package { 'libreadline-dev': source => 'present' }
@@ -232,9 +233,9 @@ class { "leonardo_development" :
 }
 
 class { "leonardo_gui" : }
+class { "leonardo_containers" : }
 
 if (! $facts['is_virtual']) {
-  class { "leonardo_containers" : }
   class { "leonardo_virtualization" : }
 }
 
@@ -276,7 +277,13 @@ user { "leonardo":
   owner => "leonardo",
   group => "leonardo",
   content => $vimconfig,
+} -> file_line { 'editor_in_bashrc':
+  path => "/home/leonardo/.bashrc",
+  line => "export EDITOR=vim",
 }
+
+# TODO: Install haskell compiler
+# TODO: Install rust compiler
 
 # Useful packages
 package { "openssh-server": ensure => "present" }
