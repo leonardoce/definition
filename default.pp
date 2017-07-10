@@ -253,6 +253,10 @@ $vimconfig = @(VIMCONFIG)
 set nocompatible
 syntax on
 set ai
+
+set expandtab
+set shiftwidth=4
+set tabstop=4
 | VIMCONFIG
 
 user { "leonardo":
