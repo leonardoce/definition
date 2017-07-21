@@ -216,12 +216,23 @@ class leonardo_development ( $username, $home_directory ) {
   }
   class { "dotnet_development": }
 
+  # Emacs prelude installation
   exec { "install_prelude":
     command => "/usr/bin/git clone http://github.com/bbatsov/prelude .emacs.d",
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.emacs.d",
     require => [Package['git'], User[$username]],
+  }
+
+  # PyCharm installation
+  exec { 'download_pycharm':
+    command => "/usr/bin/curl --continue - -L -o /tmp/pycharm.tar.gz https://download.jetbrains.com/python/pycharm-professional-2017.1.5.tar.gz",
+    # creates => "/tmp/pycharm.tar.gz",
+    timeout => 1800,
+  } -> exec { 'extract_pycharm':
+    command => "/bin/tar -C /opt -xvzf /tmp/pycharm.tar.gz",
+    creates => "/opt/pycharm-2017.1.5"
   }
 }
 
