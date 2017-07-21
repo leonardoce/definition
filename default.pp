@@ -216,9 +216,8 @@ class leonardo_development ( $username, $home_directory ) {
   }
   class { "dotnet_development": }
 
-  # Installing Spacemacs
-  exec { "install_spacemacs":
-    command => "/usr/bin/git clone http://github.com/syl20bnr/spacemacs .emacs.d",
+  exec { "install_prelude":
+    command => "/usr/bin/git clone http://github.com/bbatsov/prelude .emacs.d",
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.emacs.d",
