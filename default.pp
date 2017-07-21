@@ -275,6 +275,10 @@ name = Leonardo Cecchi
 | GITCONFIG
 
 $tmuxconfig = @(TMUXCONFIG)
+set -g escape-time 0
+set -g mode-keys vi
+set -g status-style bg=blue
+
 set -g prefix C-a
 bind-key C-a send-prefix
 | TMUXCONFIG
