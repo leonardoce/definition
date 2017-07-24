@@ -127,18 +127,20 @@ class pgenv_development (
 
 # Install the .Net core development environment
 class dotnet_development(
-  $distro_name = $::os['distro']['codename']
+  $distro_name = 'xenial'
 ) {
-  file { '/etc/apt/sources.list.d/dotnetdev.list':
-    ensure => 'present',
-    content => "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ ${distro_name} main"
-  } -> exec { 'apt-update-post-dotnetdev':
-    command => "/usr/bin/apt-get update",
-  } -> exec { 'key-refresh-post-dotnetdev':
-    command => '/usr/bin/apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893',
-  } -> package { 'dotnet-dev-1.0.4':
-    ensure => 'present',
-    require => [Exec['apt-update-post-dotnetdev'], Exec['key-refresh-post-dotnetdev']]
+  if $::os['family'] == 'Debian' {
+    file { '/etc/apt/sources.list.d/dotnetdev.list':
+      ensure => 'present',
+      content => "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ ${distro_name} main"
+    } -> exec { 'apt-update-post-dotnetdev':
+      command => "/usr/bin/apt-get update",
+    } -> exec { 'key-refresh-post-dotnetdev':
+      command => '/usr/bin/apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893',
+    } -> package { 'dotnet-dev-1.0.4':
+      ensure => 'present',
+      require => [Exec['apt-update-post-dotnetdev'], Exec['key-refresh-post-dotnetdev']]
+    }
   }
 }
 
@@ -228,7 +230,9 @@ class leonardo_development ( $username, $home_directory ) {
     username => $username,
     home_directory => $home_directory,
   }
-  class { "dotnet_development": }
+  if $::os['family'] != 'Archlinux' {
+    class { "dotnet_development": }
+  }
 
   # Emacs prelude installation
   exec { "install_prelude":
