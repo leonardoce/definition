@@ -275,6 +275,7 @@ class leonardo_gui {
 
   if ($::os['family'] == 'Archlinux') {
     package { "chromium": ensure => "present" }
+    package { "evince": ensure => "present" }
   } else {
     package { "chromium-browser": ensure => "present" }
   }
