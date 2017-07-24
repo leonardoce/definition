@@ -115,10 +115,6 @@ class pgenv_development (
     cwd => "${home_directory}/pgsql/",
     user => "${username}",
     creates => "${home_directory}/pgsql/master/config.log",
-    require => [Exec["pgenv_install"], Package['tcl-dev'], 
-	Package['libssl-dev'], Package['build-essential'], 
-	Package['bison'], Package['flex'], 
-	Package['libreadline-dev'], Package['libxml2-dev']],
     environment => [ "HOME=${home_directory}" ],
   } -> exec { "pgenv_compile_master":
     command => "${home_directory}/pgsql/install-all.sh master",
@@ -171,29 +167,47 @@ class rust_development (
 # Tool composing my development environment
 class leonardo_development ( $username, $home_directory ) {
   package { 'bison': source => 'present' }
-  package { 'build-essential': ensure => 'present' }
+  if $::os['family'] == 'Archlinux' {
+    package { 'base-devel': ensure => 'present' }
+    package { 'go': ensure => 'present' }
+    package { 'bzip2': ensure => 'present' }
+    package { 'ncurses': ensure => 'present' }
+    package { 'readline': source => 'present' }
+    package { 'sqlite': ensure => 'present' }
+    package { 'openssl': ensure => 'present' }
+    package { 'libxml2': source => 'present' }
+    package { 'tcl': ensure => 'present' }
+    package { 'tk': ensure => 'present' }
+    package { 'xz': ensure => 'present' }
+  } else {
+    package { 'golang': ensure => 'present' }
+    package { 'build-essential': ensure => 'present' }
+    package { 'libbz2-dev': ensure => 'present' }
+    package { 'ncurses5-dev': ensure => 'present' }
+    package { 'libreadline-dev': source => 'present' }
+    package { 'libsqlite3-dev': ensure => 'present' }
+    package { 'libssl-dev': ensure => 'present' }
+    package { 'libxml2-dev': source => 'present' }
+    package { 'tcl-dev': ensure => 'present' }
+    package { 'tk-dev': ensure => 'present' }
+    package { 'xz-utils': ensure => 'present' }
+  }
   package { 'curl': ensure => 'present' }
   package { 'emacs-nox': ensure => 'present' }
   package { 'flex': source => 'present' }
   package { 'git': ensure => 'present' }
-  package { 'golang': ensure => 'present' }
-  package { 'libbz2-dev': ensure => 'present' }
-  package { 'libncurses5-dev': ensure => 'present' }
-  package { 'libreadline-dev': source => 'present' }
-  package { 'libsqlite3-dev': ensure => 'present' }
-  package { 'libssl-dev': ensure => 'present' }
-  package { 'libxml2-dev': source => 'present' }
   package { 'llvm': ensure => 'present' }
   package { 'make': ensure => 'present' }
-  package { 'sqlite3': ensure => 'present' }
   package { 'sudo': ensure => 'present' }
-  package { 'tcl-dev': ensure => 'present' }
   package { 'tig': ensure => 'present' }
-  package { 'tk-dev': ensure => 'present' }
   package { 'vim': ensure => 'present' }
   package { 'wget': ensure => 'present' }
-  package { 'xz-utils': ensure => 'present' }
-  package { 'zlib1g-dev': ensure => 'present' }
+
+  if $::os['family'] == 'Archlinux' {
+    package { 'zlib': ensure => 'present' }
+  } else {
+    package { 'zlib1g-dev': ensure => 'present' }
+  }
 
   # Development environment
   class { "nvm_development":
@@ -222,7 +236,7 @@ class leonardo_development ( $username, $home_directory ) {
     cwd => "${home_directory}",
     user => "${username}",
     creates => "${home_directory}/.emacs.d",
-    require => [Package['git'], User[$username]],
+    require => User[$username],
   }
 
   # PyCharm installation
@@ -239,13 +253,27 @@ class leonardo_development ( $username, $home_directory ) {
 # Graphical interface configuration
 # ---------------------------------
 class leonardo_gui {
+  if ($::os['family'] == 'Archlinux') {
+    package { "xorg": ensure => 'present' }
+    package { "xorg-apps": ensure => 'present' }
+    package { "xorg-drivers": ensure => 'present' }
+    package { "xorg-fonts": ensure => 'present' }
+
+    package { "xorg-xinit": ensure => 'present' }
+  }
+
   package { "i3": ensure => "present" }
   package { "i3status": ensure => "present" }
   package { "dmenu": ensure => "present" }
   package { "xterm": ensure => "present" }
   package { "feh": ensure => "present" }
+  package { "ttf-dejavu": ensure => "present" }
 
-  package { "chromium-browser": ensure => "present" }
+  if ($::os['family'] == 'Archlinux') {
+    package { "chromium": ensure => "present" }
+  } else {
+    package { "chromium-browser": ensure => "present" }
+  }
   package { "firefox": ensure => "present" }
 }
 
@@ -259,7 +287,11 @@ class leonardo_virtualization {
 # Linux containers
 # ----------------
 class leonardo_containers {
-  package { "docker.io": ensure => "present" }
+  if ($::os['family'] == 'Archlinux') {
+    package { "docker": ensure => "present" }
+  } else {
+    package { "docker.io": ensure => "present" }
+  }
 }
 
 
@@ -303,11 +335,13 @@ set shiftwidth=4
 set tabstop=4
 | VIMCONFIG
 
-user { "leonardo":
+group { "docker":
+  ensure => "present"
+} -> user { "leonardo":
   ensure => "present",
   managehome => true,
   shell => "/bin/bash",
-  groups => ["sudo"],
+  groups => ["docker", "wheel"],
 } -> file { "/home/leonardo/.gitconfig" :
   owner => "leonardo",
   group => "leonardo",
@@ -329,7 +363,11 @@ user { "leonardo":
 # TODO: Install haskell compiler
 
 # Useful packages
-package { "openssh-server": ensure => "present" }
+if $::os['family'] == 'Archlinux' {
+  package { "openssh": ensure => "present" }
+} else {
+  package { "openssh-server": ensure => "present" }
+}
 package { "tmux": ensure => "present" }
 package { "iotop": ensure => "present" }
 package { "iftop": ensure => "present" }
