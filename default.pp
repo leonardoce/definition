@@ -104,10 +104,10 @@ class pgenv_development (
     package { "tcl-dev": ensure => "present" }
     package { "libssl-dev": ensure => "present" }
     package { "build-essential": ensure => "present" }
-    package { "bison": source => "present" }
-    package { "flex": source => "present" }
-    package { "libreadline-dev": source => "present" }
-    package { "libxml2-dev": source => "present" }
+    package { "bison": ensure => "present" }
+    package { "flex": ensure => "present" }
+    package { "libreadline-dev": ensure => "present" }
+    package { "libxml2-dev": ensure => "present" }
   }
 
   exec { "pgenv_configure_master":
@@ -168,16 +168,15 @@ class rust_development (
 
 # Tool composing my development environment
 class leonardo_development ( $username, $home_directory ) {
-  package { 'bison': source => 'present' }
   if $::os['family'] == 'Archlinux' {
     package { 'base-devel': ensure => 'present' }
     package { 'go': ensure => 'present' }
     package { 'bzip2': ensure => 'present' }
     package { 'ncurses': ensure => 'present' }
-    package { 'readline': source => 'present' }
+    package { 'readline': ensure => 'present' }
     package { 'sqlite': ensure => 'present' }
     package { 'openssl': ensure => 'present' }
-    package { 'libxml2': source => 'present' }
+    package { 'libxml2': ensure => 'present' }
     package { 'tcl': ensure => 'present' }
     package { 'tk': ensure => 'present' }
     package { 'xz': ensure => 'present' }
@@ -186,17 +185,17 @@ class leonardo_development ( $username, $home_directory ) {
     package { 'build-essential': ensure => 'present' }
     package { 'libbz2-dev': ensure => 'present' }
     package { 'ncurses5-dev': ensure => 'present' }
-    package { 'libreadline-dev': source => 'present' }
+    package { 'libreadline-dev': ensure => 'present' }
     package { 'libsqlite3-dev': ensure => 'present' }
     package { 'libssl-dev': ensure => 'present' }
-    package { 'libxml2-dev': source => 'present' }
+    package { 'libxml2-dev': ensure => 'present' }
     package { 'tcl-dev': ensure => 'present' }
     package { 'tk-dev': ensure => 'present' }
     package { 'xz-utils': ensure => 'present' }
   }
   package { 'curl': ensure => 'present' }
   package { 'emacs-nox': ensure => 'present' }
-  package { 'flex': source => 'present' }
+  package { 'flex': ensure => 'present' }
   package { 'git': ensure => 'present' }
   package { 'llvm': ensure => 'present' }
   package { 'make': ensure => 'present' }
