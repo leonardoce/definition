@@ -125,25 +125,6 @@ class pgenv_development (
   }
 }
 
-# Install the .Net core development environment
-class dotnet_development(
-  $distro_name = 'xenial'
-) {
-  if $::os['family'] == 'Debian' {
-    file { '/etc/apt/sources.list.d/dotnetdev.list':
-      ensure => 'present',
-      content => "deb [arch=amd64] https://apt-mo.trafficmanager.net/repos/dotnet-release/ ${distro_name} main"
-    } -> exec { 'apt-update-post-dotnetdev':
-      command => "/usr/bin/apt-get update",
-    } -> exec { 'key-refresh-post-dotnetdev':
-      command => '/usr/bin/apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 417A0893',
-    } -> package { 'dotnet-dev-1.0.4':
-      ensure => 'present',
-      require => [Exec['apt-update-post-dotnetdev'], Exec['key-refresh-post-dotnetdev']]
-    }
-  }
-}
-
 # Rust development environment
 class rust_development (
   $username,
@@ -167,7 +148,7 @@ class rust_development (
 }
 
 # Tool composing my development environment
-class leonardo_development ( $username, $home_directory ) {
+class development_environment ( $username, $home_directory ) {
   if $::os['family'] == 'Archlinux' {
     package { 'base-devel': ensure => 'present' }
     package { 'go': ensure => 'present' }
@@ -184,7 +165,7 @@ class leonardo_development ( $username, $home_directory ) {
     package { 'golang': ensure => 'present' }
     package { 'build-essential': ensure => 'present' }
     package { 'libbz2-dev': ensure => 'present' }
-    package { 'ncurses5-dev': ensure => 'present' }
+    package { 'libncurses5-dev': ensure => 'present' }
     package { 'libreadline-dev': ensure => 'present' }
     package { 'libsqlite3-dev': ensure => 'present' }
     package { 'libssl-dev': ensure => 'present' }
@@ -229,9 +210,6 @@ class leonardo_development ( $username, $home_directory ) {
     username => $username,
     home_directory => $home_directory,
   }
-  if $::os['family'] != 'Archlinux' {
-    class { "dotnet_development": }
-  }
 
   # Emacs prelude installation
   exec { "install_prelude":
@@ -251,11 +229,61 @@ class leonardo_development ( $username, $home_directory ) {
     command => "/bin/tar -C /opt -xvzf /tmp/pycharm.tar.gz",
     creates => "/opt/pycharm-2017.1.5"
   }
+
+
+  $gitconfig = @(GITCONFIG)
+  [user]
+  email = leonardoce@interfree.it
+  name = Leonardo Cecchi
+  | GITCONFIG
+  
+  $tmuxconfig = @(TMUXCONFIG)
+  set -g escape-time 0
+  set -g mode-keys vi
+  set -g status-style bg=blue
+  
+  set -g prefix C-a
+  bind-key C-a send-prefix
+  | TMUXCONFIG
+  
+  $vimconfig = @(VIMCONFIG)
+  set nocompatible
+  syntax on
+  set ai
+  
+  set expandtab
+  set shiftwidth=4
+  set tabstop=4
+  | VIMCONFIG
+  
+  user { $username:
+    ensure => "present",
+    managehome => true,
+    shell => "/bin/bash",
+    require => Group['docker'],
+    groups => ["docker", "wheel"],
+  } -> file { "${home_directory}/.gitconfig" :
+    owner => "${username}",
+    group => "${username}",
+    content => $gitconfig,
+    ensure => "present",
+  } -> file { "${home_directory}/.tmux.conf" :
+    owner => "${username}",
+    group => "${username}",
+    content => $tmuxconfig,
+  } -> file { "${home_directory}/.vimrc" :
+    owner => "${username}",
+    group => "${username}",
+    content => $vimconfig,
+  } -> file_line { 'editor_in_bashrc':
+    path => "${home_directory}/.bashrc",
+    line => "export EDITOR=vim",
+  }
 }
 
 # Graphical interface configuration
 # ---------------------------------
-class leonardo_gui {
+class desktop_interface {
   if ($::os['family'] == 'Archlinux') {
     package { "xorg": ensure => 'present' }
     package { "xorg-apps": ensure => 'present' }
@@ -279,92 +307,46 @@ class leonardo_gui {
     package { "chromium-browser": ensure => "present" }
   }
   package { "firefox": ensure => "present" }
+  package { "vlc": ensure => "present" }
 }
 
 # Virtualization
 # --------------
-class leonardo_virtualization {
+class virtualization_support {
   package { "vagrant": ensure => "present" }
   package { "virtualbox": ensure => "present" }
 }
 
 # Linux containers
 # ----------------
-class leonardo_containers {
+class containers_support {
   if ($::os['family'] == 'Archlinux') {
     package { "docker": ensure => "present" }
   } else {
     package { "docker.io": ensure => "present" }
   }
+
+  group { "docker":
+    ensure => "present"
+  }
 }
 
 
+# ----------------------------------------
 # Actual development machine configuration
 # ----------------------------------------
 
-class { "leonardo_development" :
+class { "development_environment" :
   username => "leonardo",
   home_directory => "/home/leonardo"
 }
 
-class { "leonardo_gui" : }
-class { "leonardo_containers" : }
+class { "containers_support" : }
 
 if (! $facts['is_virtual']) {
-  class { "leonardo_virtualization" : }
+  class { "virtualization_support" : }
+  class { "desktop_interface" : }
 }
-
-$gitconfig = @(GITCONFIG)
-[user]
-email = leonardoce@interfree.it
-name = Leonardo Cecchi
-| GITCONFIG
-
-$tmuxconfig = @(TMUXCONFIG)
-set -g escape-time 0
-set -g mode-keys vi
-set -g status-style bg=blue
-
-set -g prefix C-a
-bind-key C-a send-prefix
-| TMUXCONFIG
-
-$vimconfig = @(VIMCONFIG)
-set nocompatible
-syntax on
-set ai
-
-set expandtab
-set shiftwidth=4
-set tabstop=4
-| VIMCONFIG
-
-group { "docker":
-  ensure => "present"
-} -> user { "leonardo":
-  ensure => "present",
-  managehome => true,
-  shell => "/bin/bash",
-  groups => ["docker", "wheel"],
-} -> file { "/home/leonardo/.gitconfig" :
-  owner => "leonardo",
-  group => "leonardo",
-  content => $gitconfig,
-  ensure => "present",
-} -> file { "/home/leonardo/.tmux.conf" :
-  owner => "leonardo",
-  group => "leonardo",
-  content => $tmuxconfig,
-} -> file { "/home/leonardo/.vimrc" :
-  owner => "leonardo",
-  group => "leonardo",
-  content => $vimconfig,
-} -> file_line { 'editor_in_bashrc':
-  path => "/home/leonardo/.bashrc",
-  line => "export EDITOR=vim",
-}
-
-# TODO: Install haskell compiler
 
 # Useful packages
 if $::os['family'] == 'Archlinux' {
@@ -377,4 +359,5 @@ package { "iotop": ensure => "present" }
 package { "iftop": ensure => "present" }
 package { "htop": ensure => "present" }
 package { "powertop": ensure => "present" }
-package { "vlc": ensure => "present" }
+
+# TODO: Install haskell compiler
