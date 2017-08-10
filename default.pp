@@ -20,7 +20,7 @@ class pyenv_development (
   $username,
   $home_directory,
   $install_packages = true,
-  $python_versions = ["3.6.1", "3.5.3", "3.4.6", "3.3.6", "3.2.6", "2.7.13"],
+  $python_versions = ["3.6.1", "3.5.3", "2.7.13"],
 ) {
   exec { "pyenv_install":
     command => "/usr/bin/git clone http://github.com/pyenv/pyenv .pyenv",
@@ -161,6 +161,17 @@ class development_environment ( $username, $home_directory ) {
     package { 'tcl': ensure => 'present' }
     package { 'tk': ensure => 'present' }
     package { 'xz': ensure => 'present' }
+  } elsif $::os['family'] == 'RedHat' {
+    package { 'golang': ensure => 'present' }
+    package { 'bzip2-devel': ensure => 'present' }
+    package { 'ncurses-devel': ensure => 'present' }
+    package { 'readline-devel': ensure => 'present' }
+    package { 'sqlite-devel': ensure => 'present' }
+    package { 'openssl-devel': ensure => 'present' }
+    package { 'libxml2-devel': ensure => 'present' }
+    package { 'tcl-devel': ensure => 'present' }
+    package { 'tk-devel': ensure => 'present' }
+    package { 'xz-devel': ensure => 'present' }
   } else {
     package { 'golang': ensure => 'present' }
     package { 'build-essential': ensure => 'present' }
@@ -187,6 +198,8 @@ class development_environment ( $username, $home_directory ) {
 
   if $::os['family'] == 'Archlinux' {
     package { 'zlib': ensure => 'present' }
+  } elsif $::os['family'] == 'RedHat' {
+    package { 'zlib-devel': ensure => 'present' }
   } else {
     package { 'zlib1g-dev': ensure => 'present' }
   }
@@ -289,7 +302,6 @@ class desktop_interface {
     package { "xorg-apps": ensure => 'present' }
     package { "xorg-drivers": ensure => 'present' }
     package { "xorg-fonts": ensure => 'present' }
-
     package { "xorg-xinit": ensure => 'present' }
   }
 
@@ -298,16 +310,20 @@ class desktop_interface {
   package { "dmenu": ensure => "present" }
   package { "xterm": ensure => "present" }
   package { "feh": ensure => "present" }
-  package { "ttf-dejavu": ensure => "present" }
 
   if ($::os['family'] == 'Archlinux') {
+    package { "ttf-dejavu": ensure => "present" }
+    package { "chromium": ensure => "present" }
+    package { "evince": ensure => "present" }
+    package { "vlc": ensure => "present" }
+  } elsif ($::os['family'] == 'RedHat') {
     package { "chromium": ensure => "present" }
     package { "evince": ensure => "present" }
   } else {
+    package { "vlc": ensure => "present" }
     package { "chromium-browser": ensure => "present" }
   }
   package { "firefox": ensure => "present" }
-  package { "vlc": ensure => "present" }
 }
 
 # Virtualization
@@ -321,6 +337,8 @@ class virtualization_support {
 # ----------------
 class containers_support {
   if ($::os['family'] == 'Archlinux') {
+    package { "docker": ensure => "present" }
+  } elsif ($::os['family'] == 'RedHat') {
     package { "docker": ensure => "present" }
   } else {
     package { "docker.io": ensure => "present" }
